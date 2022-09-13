@@ -1,5 +1,3 @@
--- Run via sending command in Mudlet client: lua Xp.startPathing()
-
 -- TODO: Eventually, this whole area will hold configurable variables so that each method can
 --  consume the config variables, or ignore null ones. This would include trigger messages and xp
 --  zone paths. Ideally, this script should work for ANY zone, including the noob zone just by
@@ -8,7 +6,7 @@
 Xp = Xp or {}
 
 Xp.TO_PESVINT_FROM_GUILD = {
--- From Sorc Guild to Wemic
+    -- From Sorc Guild to Wemic
     'd','out','out','w','nw','w','nw','w','n',
 
     -- From Wemic to Pesvint
@@ -31,30 +29,24 @@ Xp.TO_GUILD_FROM_PESVINT = {
 
 Xp.CURRENT_MOVE = 1
 
-function Xp.incrementMovements(movements, destinationName)
-  local currentMove = 1
+function Xp.moveFromGuildToPesvint()
+  Xp.CURRENT_MOVE = 1
 
-  for k,v in ipairs(movements, destinationName) do
-    if currentMove >= #movements then
-      send(movements[currentMove])
-      cecho("\n<red:yellow>You've reached your destination: " .. destinationName .. "\n")
-    else
-      send(movements[currentMove])
-      currentMove = currentMove + 1
-    end
-  end
+  moveTimer = tempTimer(
+    .5,
+    function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD) end,
+    true
+  )
 end
 
--- TODO: These move funcs need new names. moveTOPesvintFROMGuild etc.
-
-function Xp.moveToPesvint()
+function Xp.moveFromPesvintToGuild()
   Xp.CURRENT_MOVE = 1
-  moveTimer = tempTimer(.5, function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD) end, true)
-end
 
-function Xp.moveToGuild()
-  Xp.CURRENT_MOVE = 1
-  moveTimer = tempTimer(.5, function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end, true)
+  moveTimer = tempTimer(
+    .5,
+    function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+    true
+  )
 end
 
 -- More complex triggers: https://wiki.mudlet.org/w/Manual:Lua_Functions#tempTrigger
@@ -118,8 +110,6 @@ function Xp.sendAttackCommands()
   send("cast plasma blast")
 end
 
--- TODO: This needs an arg or grab String val of destination for event handling purposes
--- TODO: This also needs to take in the Xp.TO_PESVINT_FROM_GUILD as an argument.
 function Xp.continuePath(destination, moves)
   if Xp.CURRENT_MOVE > #moves then
     Xp.CURRENT_MOVE = 1
