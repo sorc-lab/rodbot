@@ -3,8 +3,11 @@
 --  zone paths. Ideally, this script should work for ANY zone, including the noob zone just by
 --  swapping out the config variables.
 
+-- TODO: Weird spacings etc, run full file formatter.
+
 Xp = Xp or {}
 
+-- TODO: Standardize on naming convention for these paths/moves etc. continuePathing needs to conform
 Xp.TO_PESVINT_FROM_GUILD = {
     -- From Sorc Guild to Wemic
     'd','out','out','w','nw','w','nw','w','n',
@@ -27,6 +30,16 @@ Xp.TO_GUILD_FROM_PESVINT = {
     's','e','se','e','se','e','in','in','u'
 }
 
+Xp.PESVINT_XP ={
+    'e','e',
+    'n','n','n','n','n','n','n',
+    'e','e','e','e','e','e','e','e','e','e',
+    's','s','s','s','s','s','s','s','s','s','s','s','s','s',
+    'w','w','w','w','w','w','w','w','w','w',
+    'n','n','n','n','n','n','n',
+    'w'
+}
+
 Xp.CURRENT_MOVE = 1
 
 function Xp.moveFromGuildToPesvint()
@@ -40,19 +53,32 @@ function Xp.moveFromGuildToPesvint()
 end
 
 function Xp.moveFromPesvintToGuild()
-  Xp.CURRENT_MOVE = 1
+    Xp.CURRENT_MOVE = 1
 
-  moveTimer = tempTimer(
-    .5,
-    function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
-    true
-  )
+    moveTimer = tempTimer(
+        .5,
+        function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+        true
+    )
 end
 
--- More complex triggers: https://wiki.mudlet.org/w/Manual:Lua_Functions#tempTrigger
-function Xp.startPathing()
-  Xp.startAttackTimer()
-  continuePathTrigger = tempTrigger("Cannot find mock", Xp.continuePath)
+function Xp.startPathing(path)
+    Xp.CURRENT_MOVE = 1
+    Xp.startAttackTimer()
+
+    continuePathTrigger = tempTrigger(
+        "Cannot find mock",
+        function() Xp.continuePath("Pesvint Path", path) end
+    )
+
+    -- TODO: This reInit works, but for some reason it drives me into a silk shop instead of a clean loop.
+    reInitPathingTrigger = tempTrigger(
+        "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
+        function()
+            Xp.CURRENT_MOVE = 1
+            Xp.continuePath("Pesvint Path", path)
+        end
+    )
 end
 
 function Xp.initFleeTriggers()
@@ -84,17 +110,7 @@ end
 function Xp.stopPathing()
   disableTimer(attackTimer)
   killTrigger(continuePathTrigger)
-end
-
-function Xp.continuePath()
-  if Xp.CURRENT_MOVE < #Xp.lirathMoves then
-    send(Xp.lirathMoves[Xp.CURRENT_MOVE])
-    Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
-  else
-    cecho("\n<red:yellow>You've reached the end of your path!\n")
-    Xp.stopPathing()
-    Xp.CURRENT_MOVE = 1
-  end
+  killTrigger(reInitPathingTrigger)
 end
 
 function Xp.startAttackTimer()
