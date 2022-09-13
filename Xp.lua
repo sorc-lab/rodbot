@@ -37,7 +37,7 @@ Xp.PESVINT_XP ={
     's','s','s','s','s','s','s','s','s','s','s','s','s','s',
     'w','w','w','w','w','w','w','w','w','w',
     'n','n','n','n','n','n','n',
-    'w'
+    'w','w'
 }
 
 Xp.CURRENT_MOVE = 1
@@ -67,17 +67,14 @@ function Xp.startPathing(path)
     Xp.startAttackTimer()
 
     continuePathTrigger = tempTrigger(
-        "Cannot find mock",
+        "Cannot find militia man",
         function() Xp.continuePath("Pesvint Path", path) end
     )
 
     -- TODO: This reInit works, but for some reason it drives me into a silk shop instead of a clean loop.
     reInitPathingTrigger = tempTrigger(
         "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
-        function()
-            Xp.CURRENT_MOVE = 1
-            Xp.continuePath("Pesvint Path", path)
-        end
+        function() Xp.continuePath("Pesvint Path", path) end
     )
 end
 
@@ -122,7 +119,7 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-  send("kill mock")
+  send("kill militia man")
   send("cast plasma blast")
 end
 
