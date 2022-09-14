@@ -30,7 +30,17 @@ Xp.TO_GUILD_FROM_PESVINT = {
     's','e','se','e','se','e','in','in','u'
 }
 
-Xp.PESVINT_XP ={
+Xp.LIRATH_XP = {
+    -- south gate, n, then west to west wall, n to north wall, down middle, repeat to north wall then
+    -- cut across and down, then circle back to south gate
+    'n','w','w','w','w','w',
+    'n','n','n','n','n','n','n','n','n','n','n','n','n','n','n','n',
+    'e','e','e','e','e','e','e','e','e','e',
+    's','s','s','s','s','s','s','s','s','s','s','s','s','s','s','s',
+    'w','w','w','w','w','s'
+}
+
+Xp.PESVINT_XP = {
     'e','e',
     'n','n','n','n','n','n','n',
     'e','e','e','e','e','e','e','e','e','e',
@@ -40,8 +50,28 @@ Xp.PESVINT_XP ={
     'w','w'
 }
 
+-- Pesvint West Gate to Lirath South Gate
+Xp.TO_LIRATH_FROM_PESVINT = {
+    -- TODO: Fill out
+}
+
+-- Lirath south gate to Black Shrine
+Xp.TO_BLACK_SHRINE_FROM_LIRATH = {
+    -- To Lirath East Gate
+    'n','e','e','e','e','e','n','n','n','n','n','n','n','n',
+
+    -- To Manetheren Marsh area
+    'e','e','e','e','e','e','e','e','se','e','se','e','e','e','e','e','se','e','e','ne','ne','e',
+    'se','se','e','e','e','e','e','e',
+
+    -- To Shaman in Marsh
+    'ne','n','n','nw','nw','n','n','w','sw','sw','sw','w','nw','nw','sw','w','sw','d','se'
+}
+
 Xp.CURRENT_MOVE = 1
 
+-- TODO: These move functions should take args and become generic. They definitely still need the
+--  arrival message with destination label
 function Xp.moveFromGuildToPesvint()
   Xp.CURRENT_MOVE = 1
 
@@ -62,20 +92,29 @@ function Xp.moveFromPesvintToGuild()
     )
 end
 
-function Xp.startPathing(path)
+function Xp.moveFromLirathToBlackShrine()
     Xp.CURRENT_MOVE = 1
-    Xp.startAttackTimer()
 
-    continuePathTrigger = tempTrigger(
-        "Cannot find militia man",
-        function() Xp.continuePath("Pesvint Path", path) end
+    moveTimer = tempTimer(
+        .5,
+        function() Xp.continuePath("Black Shrine", Xp.TO_BLACK_SHRINE_FROM_LIRATH) end,
+        true
     )
+end
 
-    -- TODO: This reInit works, but for some reason it drives me into a silk shop instead of a clean loop.
-    reInitPathingTrigger = tempTrigger(
-        "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
-        function() Xp.continuePath("Pesvint Path", path) end
-    )
+-- TODO: This entire function can be tested manually mid battle. No need to wire it up to triggers yet.
+function Xp.initFleeEvent()
+    -- exec Xp.stopPathing to kill triggers and attack timer
+    -- send("stop")
+    -- Need to decrement pathing moves until you get back to 1, need to move array in reverse.
+    --      TODO: This can be tested manually before going live.
+
+    -- Need to pass current movement array into this function. Or, we could set this GLOBALLY
+    -- Take the current path and create a the current move index
+    -- Generate a new array that starts from the current idx and ends at 1 in revers. Cut off all the rest.
+    -- Feed that new array into a moveToEscapePoint method that takes the generated array
+        -- This function will call the continuePath method and have destination string to trigger off
+    -- Trigger on flee success msg, then execute any pre-made move method, like move to guild.
 end
 
 function Xp.initFleeTriggers()
@@ -87,6 +126,8 @@ function Xp.initFleeTriggers()
   -- You are currently too mentally drained to cast Air Steel
   -- Your hands have lost their electrical energy.
 
+  -- TODO: *** START MOVING THESE NOTES OFF TO A REGEN FUNCTION ***
+    -- TODO: ADD A REGEN JUST TO SIT FOR 5 mins to let zone re-pop
   -- TODO: Add each flee trigger here as separate trigger, but have them all trigger same function
   -- TODO: Once bot reaches flee destination, have it init a new timer and triggers that will do the following
   --        1. set timer to check 'l me' every 60 secs
@@ -104,6 +145,29 @@ function Xp.initFleeTriggers()
   --        NOTE: Don't use 'grasp key', for now, just run back to the sorc guild.
 end
 
+function Xp.startPathing(path)
+    Xp.CURRENT_MOVE = 1
+    Xp.startAttackTimer()
+
+    continuePathTrigger = tempTrigger(
+        "Cannot find cutthroat,cutpurse",
+        --"Cannot find militia man",
+        function() Xp.continuePath("Pesvint Path", path) end
+    )
+
+    reInitPathingTrigger = tempTrigger(
+        "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
+        function()
+            -- TODO: Not sure if these are needed here.
+            killTrigger(continuePathTrigger)
+            killTrigger(reInitPathingTrigger)
+            Xp.continuePath("Pesvint Path", path)
+        end
+    )
+
+    --Xp.initFleeTriggers()
+end
+
 function Xp.stopPathing()
   disableTimer(attackTimer)
   killTrigger(continuePathTrigger)
@@ -111,7 +175,7 @@ function Xp.stopPathing()
 end
 
 function Xp.startAttackTimer()
-  attackTimer = tempTimer(2, Xp.sendAttackCommands, true)
+    attackTimer = tempTimer(2, Xp.sendAttackCommands, true)
 end
 
 function Xp.stopAttackTimer()
@@ -119,7 +183,8 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-  send("kill militia man")
+  --send("kill militia man")
+  send("kill cutthroat,cutpurse")
   send("cast plasma blast")
 end
 
