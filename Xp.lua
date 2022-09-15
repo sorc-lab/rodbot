@@ -232,6 +232,7 @@ function Xp.initFleeTriggers()
   --        NOTE: Don't use 'grasp key', for now, just run back to the sorc guild.
 end
 
+-- TODO: This func needs a trigger on "What?" And then stop immediately, or even consider send("quit")
 function Xp.startPathing(path)
     Xp.CURRENT_MOVE = 1
     Xp.CURRENT_PATH = path
@@ -242,6 +243,7 @@ function Xp.startPathing(path)
         function() Xp.continuePath("Pesvint Path", path) end
     )
 
+    -- TODO: Does this do anything? Make sure it still works.
     reInitPathingTrigger = tempTrigger(
         "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
         function()
@@ -262,20 +264,25 @@ function Xp.startPathing(path)
     -- You are currently too mentally drained to cast Air Steel
     -- Your hands have lost their electrical energy.
 
+    -- *********************************************************************************************
+    -- BUG: For some reason, when one trigger goes off, all three go off. Keep just one for now
+    -- *********************************************************************************************
+
+    -- TODO: You may not be able to set multiple tempTriggers, see if you can use another way.
     airSteelDropTrigger = tempTrigger(
             "The hardened air around you softens",
             function() Xp.flee() end
     )
 
-    electricFieldDropTrigger = tempTrigger(
-            "Your Electric Field Spell Expires",
-            function() Xp.flee() end
-    )
-
-    shockingGraspDropTrigger = tempTrigger(
-            "Your hands have lost their electrical energy",
-            function() Xp.flee() end
-    )
+    --electricFieldDropTrigger = tempTrigger(
+    --        "Your Electric Field Spell Expires",
+    --        function() Xp.flee() end
+    --)
+    --
+    --shockingGraspDropTrigger = tempTrigger(
+    --        "Your hands have lost their electrical energy",
+    --        function() Xp.flee() end
+    --)
 end
 
 function Xp.stopPathing()
@@ -312,12 +319,11 @@ end
 -- TODO: This method needs be handed the next index. It cannot increment within, else use global.
 function Xp.continueFleeing(destination, moves)
     if Xp.FLEE_IDX > #moves then
-        send("stop")
         Xp.FLEE_IDX = 1
+        disableTimer(fleeTimer)
+        send("stop")
 
         cecho("\n<red:yellow>FLEE TO PESVINT!\n")
-        disableTimer(fleeTimer)
-
     else
         --echo("\nFleeing: "..moves[Xp.FLEE_IDX].."\n")
         send(moves[Xp.FLEE_IDX])
