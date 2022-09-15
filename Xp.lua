@@ -7,6 +7,11 @@
 
 Xp = Xp or {}
 
+-- TODO: CURRENT_MOVE really should be current move index or something.
+Xp.CURRENT_MOVE = 1
+Xp.CURRENT_PATH = nil
+Xp.FLEE_IDX = 1
+
 -- TODO: Standardize on naming convention for these paths/moves etc. continuePathing needs to conform
 Xp.TO_PESVINT_FROM_GUILD = {
     -- From Sorc Guild to Wemic
@@ -52,7 +57,28 @@ Xp.PESVINT_XP = {
 
 -- Pesvint West Gate to Lirath South Gate
 Xp.TO_LIRATH_FROM_PESVINT = {
-    -- TODO: Fill out
+    -- To Valeris
+    'u',
+    'w','w','w','w','w','w','w','w','w','w','w',
+    'nw','nw','nw','n','n','ne','ne','e','ne','ne','ne',
+
+    -- To cliff face
+    'n','n','n','n','n','n','d',
+
+    -- To Stowe
+    'n','n','n','n','n','n','n','n',
+
+    -- To Lirath South Gate
+    'n','n','n','n','n','n','n','n','n','n','n','n','n'
+}
+
+Xp.TO_PESVINT_FROM_LIRATH = {
+    's','s','s','s','s','s','s','s','s','s','s','s','s',
+    's','s','s','s','s','s','s','s',
+    'u','s','s','s','s','s','s',
+    'sw','sw','sw','w','sw','sw','s','s','se','se','se',
+    'e','e','e','e','e','e','e','e','e','e','e',
+    'd'
 }
 
 -- Lirath south gate to Black Shrine
@@ -68,8 +94,6 @@ Xp.TO_BLACK_SHRINE_FROM_LIRATH = {
     'ne','n','n','nw','nw','n','n','w','sw','sw','sw','w','nw','nw','sw','w','sw','d','se'
 }
 
-Xp.CURRENT_MOVE = 1
-
 -- TODO: These move functions should take args and become generic. They definitely still need the
 --  arrival message with destination label
 function Xp.moveFromGuildToPesvint()
@@ -82,6 +106,27 @@ function Xp.moveFromGuildToPesvint()
   )
 end
 
+function Xp.moveFromLirathToPesvint()
+    Xp.CURRENT_MOVE = 1
+
+    moveTimer = tempTimer(
+        .5,
+        function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_LIRATH) end,
+        true
+    )
+end
+
+function Xp.fleeFromLirathToPesvint()
+    echo("\nAre we fleeing to Pesvint?\n")
+    Xp.CURRENT_MOVE = 1
+
+    moveTimer = tempTimer(
+            .5,
+            function() Xp.continuePath("FLEE TO GUILD", Xp.TO_PESVINT_FROM_LIRATH) end,
+            true
+    )
+end
+
 function Xp.moveFromPesvintToGuild()
     Xp.CURRENT_MOVE = 1
 
@@ -89,6 +134,16 @@ function Xp.moveFromPesvintToGuild()
         .5,
         function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
         true
+    )
+end
+
+function Xp.fleeFromPesvintToGuild()
+    Xp.CURRENT_MOVE = 1
+
+    moveTimer = tempTimer(
+            .5,
+            function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+            true
     )
 end
 
@@ -102,22 +157,61 @@ function Xp.moveFromLirathToBlackShrine()
     )
 end
 
--- TODO: This entire function can be tested manually mid battle. No need to wire it up to triggers yet.
-function Xp.initFleeEvent()
-    -- exec Xp.stopPathing to kill triggers and attack timer
-    -- send("stop")
-    -- Need to decrement pathing moves until you get back to 1, need to move array in reverse.
-    --      TODO: This can be tested manually before going live.
+function Xp.moveFromPesvintToLirath()
+    Xp.CURRENT_MOVE = 1
 
-    -- Need to pass current movement array into this function. Or, we could set this GLOBALLY
-    -- Take the current path and create a the current move index
-    -- Generate a new array that starts from the current idx and ends at 1 in revers. Cut off all the rest.
-    -- Feed that new array into a moveToEscapePoint method that takes the generated array
-        -- This function will call the continuePath method and have destination string to trigger off
-    -- Trigger on flee success msg, then execute any pre-made move method, like move to guild.
+    moveTimer = tempTimer(
+        .5,
+        function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT) end,
+        true
+    )
 end
 
+local function arraySlice (tbl, s, e)
+    local pos, new = 1, {}
+
+    for i = s, e do
+        new[pos] = tbl[i]
+        pos = pos + 1
+    end
+
+    return new
+end
+
+function Xp.flee()
+    -- TODO: Try this for now. Triggers are not going off for some reason.
+    Xp.initFleeTriggers()
+
+    Xp.stopPathing()
+    send("stop")
+
+    -- Slices a new array starting with current position in current path.
+    local fleeMoves = arraySlice(Xp.CURRENT_PATH, Xp.CURRENT_MOVE, #Xp.CURRENT_PATH)
+
+    -- TODO: Note that I have to make my own continuePath func here b/c continue path uese global state
+    --  Need to make it so all these functions take in their needed values, not globals.
+    fleeTimer = tempTimer(
+        .5,
+        function() Xp.continueFleeing("Sorcerer's Guild", fleeMoves) end,
+        true
+    )
+end
+
+-- TODO: *** THESE TRIGGERS ARE NOT TRIGGERING ***
 function Xp.initFleeTriggers()
+    fleeToPesvintTrigger = tempTrigger(
+            "FLEE TO PESVINT!",
+            function()
+                echo("\nAre we triggering to flee to Pesvint?\n")
+                Xp.fleeFromLirathToPesvint()
+            end
+    )
+
+    fleeToGuildTrigger = tempTrigger(
+            "YOU HAVE ARRIVED AT YOUR DESTINATION: FLEE TO GUILD",
+            function() Xp.fleeFromPesvintToGuild() end
+    )
+
   -- The hardened air around you is beginning to soften
   -- Your Electric Field Spell Expires
   -- Cannot find militia man,conscript,citizen
@@ -147,11 +241,11 @@ end
 
 function Xp.startPathing(path)
     Xp.CURRENT_MOVE = 1
+    Xp.CURRENT_PATH = path
     Xp.startAttackTimer()
 
     continuePathTrigger = tempTrigger(
-        "Cannot find cutthroat,cutpurse",
-        --"Cannot find militia man",
+        "Cannot find militia man,cutthroat,cutpurse",
         function() Xp.continuePath("Pesvint Path", path) end
     )
 
@@ -183,8 +277,7 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-  --send("kill militia man")
-  send("kill cutthroat,cutpurse")
+  send("kill militia man,cutthroat,cutpurse")
   send("cast plasma blast")
 end
 
@@ -197,4 +290,19 @@ function Xp.continuePath(destination, moves)
     send(moves[Xp.CURRENT_MOVE])
     Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
   end
+end
+
+-- TODO: See this method and one above. They should work more generically.
+-- TODO: This method needs be handed the next index. It cannot increment within, else use global.
+function Xp.continueFleeing(destination, moves)
+    if Xp.FLEE_IDX > #moves then
+        Xp.FLEE_IDX = 1
+
+        cecho("\n<red:yellow>FLEE TO PESVINT!\n")
+        disableTimer(fleeTimer)
+    else
+        --echo("\nFleeing: "..moves[Xp.FLEE_IDX].."\n")
+        send(moves[Xp.FLEE_IDX])
+        Xp.FLEE_IDX = Xp.FLEE_IDX + 1
+    end
 end
