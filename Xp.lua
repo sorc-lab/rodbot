@@ -240,21 +240,27 @@ function Xp.startPathing(path)
 
     continuePathTrigger = tempTrigger(
         "Cannot find militia man,cutthroat,cutpurse",
+        --"Cannot find mock",
         function() Xp.continuePath("Pesvint Path", path) end
     )
 
     -- TODO: Does this do anything? Make sure it still works.
-    reInitPathingTrigger = tempTrigger(
-        "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
-        function()
-            echo("\nIs the reInit path working?\n")
-
-            -- TODO: Not sure if these are needed here.
-            killTrigger(continuePathTrigger)
-            killTrigger(reInitPathingTrigger)
-            Xp.continuePath("Pesvint Path", path)
-        end
-    )
+    --reInitPathingTrigger = tempTrigger(
+    --    "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
+    --    function()
+    --        pausePathingTimer = tempTimer(
+    --            300,
+    --            function()
+    --                echo("\nIs the reInit path working?\n")
+    --
+    --                -- TODO: Not sure if these are needed here.
+    --                killTrigger(continuePathTrigger)
+    --                killTrigger(reInitPathingTrigger)
+    --                Xp.continuePath("Pesvint Path", path)
+    --            end
+    --        )
+    --    end
+    --)
 
     -- The hardened air around you is beginning to soften
     -- Your Electric Field Spell Expires
@@ -269,10 +275,10 @@ function Xp.startPathing(path)
     -- *********************************************************************************************
 
     -- TODO: You may not be able to set multiple tempTriggers, see if you can use another way.
-    airSteelDropTrigger = tempTrigger(
-            "The hardened air around you softens",
-            function() Xp.flee() end
-    )
+    --airSteelDropTrigger = tempTrigger(
+    --        "The hardened air around you softens",
+    --        function() Xp.flee() end
+    --)
 
     --electricFieldDropTrigger = tempTrigger(
     --        "Your Electric Field Spell Expires",
@@ -288,7 +294,7 @@ end
 function Xp.stopPathing()
   disableTimer(attackTimer)
   killTrigger(continuePathTrigger)
-  killTrigger(reInitPathingTrigger)
+  --killTrigger(reInitPathingTrigger)
 end
 
 function Xp.startAttackTimer()
@@ -301,14 +307,20 @@ end
 
 function Xp.sendAttackCommands()
   send("kill militia man,cutthroat,cutpurse")
+  --send("kill mock")
+
   send("cast plasma blast")
 end
 
 function Xp.continuePath(destination, moves)
   if Xp.CURRENT_MOVE > #moves then
-    Xp.CURRENT_MOVE = 1
-    cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
-    disableTimer(moveTimer)
+      echo("\nAttempting to stop pathing.\n")
+      send("stop")
+      Xp.stopPathing()
+      disableTimer(attackTimer)
+      Xp.CURRENT_MOVE = 1
+      cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
+      disableTimer(moveTimer)
   else
     send(moves[Xp.CURRENT_MOVE])
     Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
