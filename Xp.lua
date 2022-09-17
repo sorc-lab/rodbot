@@ -292,9 +292,15 @@ function Xp.startPathing(path)
 end
 
 function Xp.stopPathing()
-  disableTimer(attackTimer)
-  killTrigger(continuePathTrigger)
-  --killTrigger(reInitPathingTrigger)
+    if attackTimer then
+        disableTimer(attackTimer)
+    end
+
+    if continuePathTrigger then
+        killTrigger(continuePathTrigger)
+    end
+
+    --killTrigger(reInitPathingTrigger)
 end
 
 function Xp.startAttackTimer()
@@ -317,7 +323,7 @@ function Xp.continuePath(destination, moves)
       echo("\nAttempting to stop pathing.\n")
       send("stop")
       Xp.stopPathing()
-      disableTimer(attackTimer)
+      --disableTimer(attackTimer)
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
       disableTimer(moveTimer)
