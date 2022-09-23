@@ -35,6 +35,41 @@ Xp.TO_GUILD_FROM_PESVINT = {
     's','e','se','e','se','e','in','in','u'
 }
 
+Xp.FXP = {
+    -- Start at elementals
+    'w',
+    'n','s',
+    'w','n','s',
+    'w','w','w','w',
+    'e','ne','ne','ne','ne',
+    'e',
+    's','w','s',
+    'n','e','e','e',
+    'w','w','n','e',
+    -- UUR, probably only for high lvl
+    --'u','d',
+    'w','n','n',
+    'w','e','n',
+    'e','e','e','e',
+    'w','s','n',
+    -- over and down to the cells
+    'w','w','w','w','w','d',
+    's','n',
+    'n','w','w','w',
+    's','n','e','s',
+    'n','e','s',
+    'n','e','e','s',
+    'n','e','s',
+    'n','e','s',
+    --out of cells
+    'n','w','w','w','s','u',
+    -- start start over
+    'e','e',
+    's','s','s',
+    'w','sw','sw','sw','sw','e','e','e','e','e'
+
+}
+
 Xp.LIRATH_XP = {
     -- south gate, n, then west to west wall, n to north wall, down middle, repeat to north wall then
     -- cut across and down, then circle back to south gate
@@ -45,7 +80,7 @@ Xp.LIRATH_XP = {
     'w','w','w','w','w','s'
 }
 
-Xp.PESVINT_XP = {
+Xp.PXP = {
     'e','e',
     'n','n','n','n','n','n','n',
     'e','e','e','e','e','e','e','e','e','e',
@@ -96,7 +131,7 @@ Xp.TO_BLACK_SHRINE_FROM_LIRATH = {
 
 -- TODO: These move functions should take args and become generic. They definitely still need the
 --  arrival message with destination label
-function Xp.moveFromGuildToPesvint()
+function Xp.gtop()
   Xp.CURRENT_MOVE = 1
 
   moveTimer = tempTimer(
@@ -106,7 +141,7 @@ function Xp.moveFromGuildToPesvint()
   )
 end
 
-function Xp.moveFromLirathToPesvint()
+function Xp.ltop()
     Xp.CURRENT_MOVE = 1
 
     moveTimer = tempTimer(
@@ -127,7 +162,7 @@ function Xp.fleeFromLirathToPesvint()
     )
 end
 
-function Xp.moveFromPesvintToGuild()
+function Xp.ptog()
     Xp.CURRENT_MOVE = 1
 
     moveTimer = tempTimer(
@@ -147,7 +182,7 @@ function Xp.fleeFromPesvintToGuild()
     )
 end
 
-function Xp.moveFromLirathToBlackShrine()
+function Xp.ltobs()
     Xp.CURRENT_MOVE = 1
 
     moveTimer = tempTimer(
@@ -157,7 +192,7 @@ function Xp.moveFromLirathToBlackShrine()
     )
 end
 
-function Xp.moveFromPesvintToLirath()
+function Xp.ptol()
     Xp.CURRENT_MOVE = 1
 
     moveTimer = tempTimer(
@@ -239,7 +274,8 @@ function Xp.startPathing(path)
     Xp.startAttackTimer()
 
     continuePathTrigger = tempTrigger(
-        "Cannot find militia man,cutthroat,cutpurse",
+        "Cannot find fire giants,ogres,elementals",
+        --"Cannot find militia man,cutthroat,cutpurse",
         --"Cannot find mock",
         function() Xp.continuePath("Pesvint Path", path) end
     )
@@ -312,10 +348,13 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-  send("kill militia man,cutthroat,cutpurse")
+  --send("kill militia man,cutthroat,cutpurse")
+  --send("kill militia men")
   --send("kill mock")
 
-  send("cast plasma blast")
+    send("kill fire giants,ogres,elementals")
+    --send("cast plasma blast")
+    send("cast lightning storm")
 end
 
 function Xp.continuePath(destination, moves)
