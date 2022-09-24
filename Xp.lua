@@ -12,6 +12,16 @@ Xp.CURRENT_MOVE = 1
 Xp.CURRENT_PATH = nil
 Xp.FLEE_IDX = 1
 
+Xp.SXP = {
+    'n','e','s','w','u',
+    'n','e','s','w','u',
+    'n','e','s','w','u',
+    'n','e','s','w','d',
+    'n','e','s','w','d',
+    'n','e','s','w','d',
+    'n','e','s','w'
+}
+
 -- TODO: Standardize on naming convention for these paths/moves etc. continuePathing needs to conform
 Xp.TO_PESVINT_FROM_GUILD = {
     -- From Sorc Guild to Wemic
@@ -274,7 +284,8 @@ function Xp.startPathing(path)
     Xp.startAttackTimer()
 
     continuePathTrigger = tempTrigger(
-        "Cannot find fire giants,ogres,elementals",
+        --"Cannot find clockwork soldiers",
+        "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
         --"Cannot find militia man,cutthroat,cutpurse",
         --"Cannot find mock",
         function() Xp.continuePath("Pesvint Path", path) end
@@ -348,13 +359,14 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-  --send("kill militia man,cutthroat,cutpurse")
-  --send("kill militia men")
-  --send("kill mock")
+    --send("kill militia man,cutthroat,cutpurse")
+    --send("kill militia men")
+    --send("kill mock")
 
-    send("kill fire giants,ogres,elementals")
+    send("kill fire giants,ogres,elementals,militia men,ogre-mage")
+    --send("kill clockwork soldiers")
     --send("cast plasma blast")
-    send("cast lightning storm")
+    --send("cast lightning storm")
 end
 
 function Xp.continuePath(destination, moves)
@@ -365,7 +377,15 @@ function Xp.continuePath(destination, moves)
       --disableTimer(attackTimer)
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
-      disableTimer(moveTimer)
+
+      restTimer = tempTimer(
+              300,
+              function()
+                  Xp.startPathing(Xp.SXP)
+                  disableTimer(restTimer)
+              end,
+              true
+      )
   else
     send(moves[Xp.CURRENT_MOVE])
     Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
