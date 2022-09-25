@@ -9,6 +9,8 @@ Xp = Xp or {}
 
 -- TODO: CURRENT_MOVE really should be current move index or something.
 Xp.CURRENT_MOVE = 1
+Xp.CURRENT_BAG = 1
+
 Xp.CURRENT_PATH = nil
 Xp.FLEE_IDX = 1
 
@@ -256,8 +258,6 @@ function Xp.initFleeTriggers()
             function() Xp.fleeFromPesvintToGuild() end
     )
 
-
-
   -- TODO: *** START MOVING THESE NOTES OFF TO A REGEN FUNCTION ***
     -- TODO: ADD A REGEN JUST TO SIT FOR 5 mins to let zone re-pop
   -- TODO: Add each flee trigger here as separate trigger, but have them all trigger same function
@@ -366,7 +366,7 @@ function Xp.sendAttackCommands()
     send("kill fire giants,ogres,elementals,militia men,ogre-mage")
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
-    --send("cast lightning storm")
+    send("cast lightning storm")
 end
 
 function Xp.continuePath(destination, moves)
@@ -381,7 +381,7 @@ function Xp.continuePath(destination, moves)
       restTimer = tempTimer(
               300,
               function()
-                  Xp.startPathing(Xp.SXP)
+                  Xp.startPathing(Xp.FXP)
                   disableTimer(restTimer)
               end,
               true
@@ -405,5 +405,50 @@ function Xp.continueFleeing(destination, moves)
         --echo("\nFleeing: "..moves[Xp.FLEE_IDX].."\n")
         send(moves[Xp.FLEE_IDX])
         Xp.FLEE_IDX = Xp.FLEE_IDX + 1
+    end
+end
+
+-- TODOs:
+--  1. Fix path, it is getting stuck in King's room. Verify the path manually.
+--  2. Run bot until all bag1 pots are gone
+--  3. Test the bagMissTrigger. It should start grabbing pots from bag2 and setting global currBag
+--  4. Run bot until all bag2 pots are gone.
+--  5. Write the invis mode code and test with both bags empty.
+function Xp.drinkCyanPotion()
+    hud = line
+    hudSplit = string.split(hud, "Gp: ")[2]
+
+    substr = string.sub(hudSplit, 1, 4)
+    hasParen = false
+
+    -- If parenthesis detected, then GP must be below 1000
+    for k,v in ipairs(string.split(substr, "")) do
+        if v == '(' then
+            hasParen = true
+        end
+    end
+
+    -- If below 1000, check if we are below 600, if true, quaf potion
+    if hasParen then
+        bagMissTrigger = tempTrigger(
+                "You cannot find a cyan potion to drink",
+                function()
+                    Xp.CURRENT_BAG = 2
+                    send("get cyan potion from bag 2")
+                    send("drink cyan potion")
+
+                    -- TODO: Keep a global variable that knows which bag you are on. If we land here, and on bag 2, then go into invis mode.
+                end
+        )
+
+        -- TODO: This should just echo out something for a 2nd trigger to handle?
+        -- NOTE: This section needs to pull pot out of bag 1, else pull from bag 2, else go into invis mode.
+        cecho("\n<blue:yellow>QUAF CYAN POTION\n")
+        send("get cyan potion from bag 2")
+        send("drink cyan potion")
+
+        -- TODO: Remove disableTrigger and move this whole trigger into its own persistent trigger
+        -- NOTE: Would prefer to at least test this first.
+
     end
 end
