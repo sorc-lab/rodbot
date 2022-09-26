@@ -267,8 +267,8 @@ function Xp.startPathing(path)
 
     continuePathTrigger = tempTrigger(
         --"Cannot find clockwork soldiers",
-        "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
-        --"Cannot find militia man,cutthroat,cutpurse",
+        --"Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
+        "Cannot find militia man,cutthroat,cutpurse",
         --"Cannot find mock",
         function() Xp.continuePath("Pesvint Path", path, true) end
     )
@@ -282,6 +282,10 @@ function Xp.stopPathing()
     if continuePathTrigger then
         killTrigger(continuePathTrigger)
     end
+
+    if moveTimer then
+        disableTimer(moveTimer)
+    end
 end
 
 function Xp.startAttackTimer()
@@ -293,11 +297,11 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-    --send("kill militia man,cutthroat,cutpurse")
+    send("kill militia man,cutthroat,cutpurse")
     --send("kill militia men")
     --send("kill mock")
 
-    send("kill fire giants,ogres,elementals,militia men,ogre-mage")
+    --send("kill fire giants,ogres,elementals,militia men,ogre-mage")
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
     send("cast lightning storm")
@@ -305,12 +309,11 @@ end
 
 function Xp.continuePath(destination, moves, rest)
   if Xp.CURRENT_MOVE > #moves then
-      send("stop")
+      send("stop") -- TODO: This line could go inside stopPathing func.
       Xp.stopPathing()
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
 
-      -- TODO: This just broke ALL point A to point B functions. For now, pass in a bool on/off.
       if rest then
           restTimer = tempTimer(
                   300,
