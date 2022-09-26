@@ -10,6 +10,7 @@ Xp = Xp or {}
 -- TODO: CURRENT_MOVE really should be current move index or something.
 Xp.CURRENT_MOVE = 1
 Xp.CURRENT_BAG = 1
+Xp.INVIS_MODE = false
 
 Xp.CURRENT_PATH = nil
 Xp.FLEE_IDX = 1
@@ -82,7 +83,7 @@ Xp.FXP = {
 
 }
 
-Xp.LIRATH_XP = {
+Xp.LXP = {
     -- south gate, n, then west to west wall, n to north wall, down middle, repeat to north wall then
     -- cut across and down, then circle back to south gate
     'n','w','w','w','w','w',
@@ -275,6 +276,8 @@ function Xp.startPathing(path)
 end
 
 function Xp.stopPathing()
+    send("stop")
+
     if attackTimer then
         disableTimer(attackTimer)
     end
@@ -309,7 +312,6 @@ end
 
 function Xp.continuePath(destination, moves, rest)
   if Xp.CURRENT_MOVE > #moves then
-      send("stop") -- TODO: This line could go inside stopPathing func.
       Xp.stopPathing()
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
@@ -318,7 +320,8 @@ function Xp.continuePath(destination, moves, rest)
           restTimer = tempTimer(
                   300,
                   function()
-                      Xp.startPathing(Xp.FXP)
+                      -- TODO: Move this to Xp.CURRENT_PATH
+                      Xp.startPathing(Xp.PXP)
                       disableTimer(restTimer)
                   end,
                   true
@@ -355,37 +358,19 @@ end
 --  4. Run bot until all bag2 pots are gone.
 --  5. Write the invis mode code and test with both bags empty.
 -- NOTE: Also, consider adding a cast invis at the end of the path before the 5min timer is set.
---
--- INFINITE LOOP BUG -------------------------------------------------------------------------------
--- NOTE: Try again with empty bags to reproduce this trigger bug.
---Nothing to get.
---You cannot find a cyan potion to drink.
---get cyan potion from bag 2
---drink cyan potion
---get cyan potion from bag 2
---drink cyan potion
---get cyan potion from bag 2
---drink cyan potion
---get cyan potion from bag 2
---drink cyan potion
---get cyan potion from bag 2
---drink cyan potion
---get cyan potion from bag 2
---drink cyan potion
---get cyan potion from bag 2
---drink cyan potion
--- -------------------------------------------------------------------------------------------------
 function Xp.drinkCyanPotion()
     hud = line
     hudSplit = string.split(hud, "Gp: ")[2]
-
     substr = string.sub(hudSplit, 1, 4)
+
     hasParen = false
 
     -- If parenthesis detected, then GP must be below 1000
     for k,v in ipairs(string.split(substr, "")) do
         if v == '(' then
             hasParen = true
+        else
+            hasParen = false
         end
     end
 
@@ -395,27 +380,28 @@ function Xp.drinkCyanPotion()
                 "You cannot find a cyan potion to drink",
                 function()
                     if Xp.CURRENT_BAG == 2 then
+                        Xp.CURRENT_BAG = 1
                         Xp.stopPathing()
                         killTrigger("bagMissTrigger")
+                        Xp.INVIS_MODE = true
+
                         return
                     end
 
                     Xp.CURRENT_BAG = 2
                     send("get cyan potion from bag "..Xp.CURRENT_BAG)
                     send("drink cyan potion")
-
-                    -- TODO: Keep a global variable that knows which bag you are on. If we land here, and on bag 2, then go into invis mode.
                 end
         )
 
-        -- TODO: This should just echo out something for a 2nd trigger to handle?
-        -- NOTE: This section needs to pull pot out of bag 1, else pull from bag 2, else go into invis mode.
+        if Xp.INVIS_MODE == true then
+            -- TODO: This is invis mode state. Implement after quaf bug fix. Just return for now.
+            -- NOTE: This might fix our bug.
+            return
+        end
+
         cecho("\n<blue:yellow>QUAF CYAN POTION\n")
         send("get cyan potion from bag "..Xp.CURRENT_BAG)
         send("drink cyan potion")
-
-        -- TODO: Remove disableTrigger and move this whole trigger into its own persistent trigger
-        -- NOTE: Would prefer to at least test this first.
-
     end
 end
