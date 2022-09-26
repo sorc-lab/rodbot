@@ -148,7 +148,7 @@ function Xp.gtop()
 
   moveTimer = tempTimer(
     .5,
-    function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD) end,
+    function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD, false) end,
     true
   )
 end
@@ -158,7 +158,7 @@ function Xp.ltop()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_LIRATH) end,
+        function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_LIRATH, false) end,
         true
     )
 end
@@ -179,7 +179,7 @@ function Xp.ptog()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+        function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
         true
     )
 end
@@ -189,7 +189,7 @@ function Xp.fleeFromPesvintToGuild()
 
     moveTimer = tempTimer(
             .5,
-            function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+            function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
             true
     )
 end
@@ -199,7 +199,7 @@ function Xp.ltobs()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Black Shrine", Xp.TO_BLACK_SHRINE_FROM_LIRATH) end,
+        function() Xp.continuePath("Black Shrine", Xp.TO_BLACK_SHRINE_FROM_LIRATH, false) end,
         true
     )
 end
@@ -209,7 +209,7 @@ function Xp.ptol()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT) end,
+        function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT, false) end,
         true
     )
 end
@@ -257,24 +257,6 @@ function Xp.initFleeTriggers()
             "YOU HAVE ARRIVED AT YOUR DESTINATION: FLEE TO GUILD",
             function() Xp.fleeFromPesvintToGuild() end
     )
-
-  -- TODO: *** START MOVING THESE NOTES OFF TO A REGEN FUNCTION ***
-    -- TODO: ADD A REGEN JUST TO SIT FOR 5 mins to let zone re-pop
-  -- TODO: Add each flee trigger here as separate trigger, but have them all trigger same function
-  -- TODO: Once bot reaches flee destination, have it init a new timer and triggers that will do the following
-  --        1. set timer to check 'l me' every 60 secs
-  --        2. Set triggers that check output of 'l me' to see if buffs missing
-  --        3. Set global bot state that sets each buff register to true/false
-  --        4. Set a separate trigger that has regexp trigger on 'HP:  <val>' and have it run the same flee func
-  --        5. The flee func will exec the regen func
-  --        6. The regen func sets the timer to 'l me' and react and check bot state
-  --        7. Once bot state is 100% hp and all buffs reset, exec a return to combat func
-  --        8. returnToCombat moves the bot back to starting point and re-execs the startPathing func.
-  --
-  --        NOTE: The flee trigger needs to execute the movement commands on a timer that is 1 sec,
-  --          per command, or less. See what the threshold is
-  --        NOTE: Before you start working on these items, create a private repo and make a branch for each one.
-  --        NOTE: Don't use 'grasp key', for now, just run back to the sorc guild.
 end
 
 -- TODO: This func needs a trigger on "What?" And then stop immediately, or even consider send("quit")
@@ -288,54 +270,8 @@ function Xp.startPathing(path)
         "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
         --"Cannot find militia man,cutthroat,cutpurse",
         --"Cannot find mock",
-        function() Xp.continuePath("Pesvint Path", path) end
+        function() Xp.continuePath("Pesvint Path", path, true) end
     )
-
-    -- TODO: Does this do anything? Make sure it still works.
-    --reInitPathingTrigger = tempTrigger(
-    --    "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
-    --    function()
-    --        pausePathingTimer = tempTimer(
-    --            300,
-    --            function()
-    --                echo("\nIs the reInit path working?\n")
-    --
-    --                -- TODO: Not sure if these are needed here.
-    --                killTrigger(continuePathTrigger)
-    --                killTrigger(reInitPathingTrigger)
-    --                Xp.continuePath("Pesvint Path", path)
-    --            end
-    --        )
-    --    end
-    --)
-
-    -- The hardened air around you is beginning to soften
-    -- Your Electric Field Spell Expires
-    -- Cannot find militia man,conscript,citizen
-    -- The hardened air around you softens
-    -- You are currently too mentally drained to cast Electric Field
-    -- You are currently too mentally drained to cast Air Steel
-    -- Your hands have lost their electrical energy.
-
-    -- *********************************************************************************************
-    -- BUG: For some reason, when one trigger goes off, all three go off. Keep just one for now
-    -- *********************************************************************************************
-
-    -- TODO: You may not be able to set multiple tempTriggers, see if you can use another way.
-    --airSteelDropTrigger = tempTrigger(
-    --        "The hardened air around you softens",
-    --        function() Xp.flee() end
-    --)
-
-    --electricFieldDropTrigger = tempTrigger(
-    --        "Your Electric Field Spell Expires",
-    --        function() Xp.flee() end
-    --)
-    --
-    --shockingGraspDropTrigger = tempTrigger(
-    --        "Your hands have lost their electrical energy",
-    --        function() Xp.flee() end
-    --)
 end
 
 function Xp.stopPathing()
@@ -346,8 +282,6 @@ function Xp.stopPathing()
     if continuePathTrigger then
         killTrigger(continuePathTrigger)
     end
-
-    --killTrigger(reInitPathingTrigger)
 end
 
 function Xp.startAttackTimer()
@@ -369,23 +303,24 @@ function Xp.sendAttackCommands()
     send("cast lightning storm")
 end
 
-function Xp.continuePath(destination, moves)
+function Xp.continuePath(destination, moves, rest)
   if Xp.CURRENT_MOVE > #moves then
-      echo("\nAttempting to stop pathing.\n")
       send("stop")
       Xp.stopPathing()
-      --disableTimer(attackTimer)
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
 
-      restTimer = tempTimer(
-              300,
-              function()
-                  Xp.startPathing(Xp.FXP)
-                  disableTimer(restTimer)
-              end,
-              true
-      )
+      -- TODO: This just broke ALL point A to point B functions. For now, pass in a bool on/off.
+      if rest then
+          restTimer = tempTimer(
+                  300,
+                  function()
+                      Xp.startPathing(Xp.FXP)
+                      disableTimer(restTimer)
+                  end,
+                  true
+          )
+      end
   else
     send(moves[Xp.CURRENT_MOVE])
     Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
@@ -410,10 +345,33 @@ end
 
 -- TODOs:
 --  1. Fix path, it is getting stuck in King's room. Verify the path manually.
+--      BUG: I think once I have 0 pots in bag1 or bag2, some sort of infinite loop kicks off and I
+--          have to force quit the client. It queues up commands in a way that dead locks the client.
 --  2. Run bot until all bag1 pots are gone
 --  3. Test the bagMissTrigger. It should start grabbing pots from bag2 and setting global currBag
 --  4. Run bot until all bag2 pots are gone.
 --  5. Write the invis mode code and test with both bags empty.
+-- NOTE: Also, consider adding a cast invis at the end of the path before the 5min timer is set.
+--
+-- INFINITE LOOP BUG -------------------------------------------------------------------------------
+-- NOTE: Try again with empty bags to reproduce this trigger bug.
+--Nothing to get.
+--You cannot find a cyan potion to drink.
+--get cyan potion from bag 2
+--drink cyan potion
+--get cyan potion from bag 2
+--drink cyan potion
+--get cyan potion from bag 2
+--drink cyan potion
+--get cyan potion from bag 2
+--drink cyan potion
+--get cyan potion from bag 2
+--drink cyan potion
+--get cyan potion from bag 2
+--drink cyan potion
+--get cyan potion from bag 2
+--drink cyan potion
+-- -------------------------------------------------------------------------------------------------
 function Xp.drinkCyanPotion()
     hud = line
     hudSplit = string.split(hud, "Gp: ")[2]
@@ -433,8 +391,14 @@ function Xp.drinkCyanPotion()
         bagMissTrigger = tempTrigger(
                 "You cannot find a cyan potion to drink",
                 function()
+                    if Xp.CURRENT_BAG == 2 then
+                        Xp.stopPathing()
+                        killTrigger("bagMissTrigger")
+                        return
+                    end
+
                     Xp.CURRENT_BAG = 2
-                    send("get cyan potion from bag 2")
+                    send("get cyan potion from bag "..Xp.CURRENT_BAG)
                     send("drink cyan potion")
 
                     -- TODO: Keep a global variable that knows which bag you are on. If we land here, and on bag 2, then go into invis mode.
@@ -444,7 +408,7 @@ function Xp.drinkCyanPotion()
         -- TODO: This should just echo out something for a 2nd trigger to handle?
         -- NOTE: This section needs to pull pot out of bag 1, else pull from bag 2, else go into invis mode.
         cecho("\n<blue:yellow>QUAF CYAN POTION\n")
-        send("get cyan potion from bag 2")
+        send("get cyan potion from bag "..Xp.CURRENT_BAG)
         send("drink cyan potion")
 
         -- TODO: Remove disableTrigger and move this whole trigger into its own persistent trigger
