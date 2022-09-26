@@ -268,8 +268,8 @@ function Xp.startPathing(path)
 
     continuePathTrigger = tempTrigger(
         --"Cannot find clockwork soldiers",
-        --"Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
-        "Cannot find militia man,cutthroat,cutpurse",
+        "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
+        --"Cannot find militia man,cutthroat,cutpurse",
         --"Cannot find mock",
         function() Xp.continuePath("Pesvint Path", path, true) end
     )
@@ -300,11 +300,11 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-    send("kill militia man,cutthroat,cutpurse")
+    --send("kill militia man,cutthroat,cutpurse")
     --send("kill militia men")
     --send("kill mock")
 
-    --send("kill fire giants,ogres,elementals,militia men,ogre-mage")
+    send("kill fire giants,ogres,elementals,militia men,ogre-mage")
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
     send("cast lightning storm")
@@ -321,7 +321,7 @@ function Xp.continuePath(destination, moves, rest)
                   300,
                   function()
                       -- TODO: Move this to Xp.CURRENT_PATH
-                      Xp.startPathing(Xp.PXP)
+                      Xp.startPathing(Xp.FXP)
                       disableTimer(restTimer)
                   end,
                   true
@@ -394,9 +394,11 @@ function Xp.drinkCyanPotion()
                 end
         )
 
+        -- TODO: Somehow we're still in an infinite loop at Fire Giants. This did not occur in Pesvint.
+        -- NOTE: Maybe the killTrigger func inside the trigger doesn't work, so we can call that here.
         if Xp.INVIS_MODE == true then
             -- TODO: This is invis mode state. Implement after quaf bug fix. Just return for now.
-            -- NOTE: This might fix our bug.
+            -- NOTE: I recently moved the send("stop") into stopPathing, this is not ideal for this feature
             return
         end
 
