@@ -9,6 +9,9 @@ Xp = Xp or {}
 
 -- TODO: CURRENT_MOVE really should be current move index or something.
 Xp.CURRENT_MOVE = 1
+Xp.CURRENT_BAG = 1
+Xp.INVIS_MODE = false
+
 Xp.CURRENT_PATH = nil
 Xp.FLEE_IDX = 1
 
@@ -80,7 +83,7 @@ Xp.FXP = {
 
 }
 
-Xp.LIRATH_XP = {
+Xp.LXP = {
     -- south gate, n, then west to west wall, n to north wall, down middle, repeat to north wall then
     -- cut across and down, then circle back to south gate
     'n','w','w','w','w','w',
@@ -146,7 +149,7 @@ function Xp.gtop()
 
   moveTimer = tempTimer(
     .5,
-    function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD) end,
+    function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD, false) end,
     true
   )
 end
@@ -156,7 +159,7 @@ function Xp.ltop()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_LIRATH) end,
+        function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_LIRATH, false) end,
         true
     )
 end
@@ -177,7 +180,7 @@ function Xp.ptog()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+        function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
         true
     )
 end
@@ -187,7 +190,7 @@ function Xp.fleeFromPesvintToGuild()
 
     moveTimer = tempTimer(
             .5,
-            function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT) end,
+            function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
             true
     )
 end
@@ -197,7 +200,7 @@ function Xp.ltobs()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Black Shrine", Xp.TO_BLACK_SHRINE_FROM_LIRATH) end,
+        function() Xp.continuePath("Black Shrine", Xp.TO_BLACK_SHRINE_FROM_LIRATH, false) end,
         true
     )
 end
@@ -207,7 +210,7 @@ function Xp.ptol()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT) end,
+        function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT, false) end,
         true
     )
 end
@@ -255,26 +258,6 @@ function Xp.initFleeTriggers()
             "YOU HAVE ARRIVED AT YOUR DESTINATION: FLEE TO GUILD",
             function() Xp.fleeFromPesvintToGuild() end
     )
-
-
-
-  -- TODO: *** START MOVING THESE NOTES OFF TO A REGEN FUNCTION ***
-    -- TODO: ADD A REGEN JUST TO SIT FOR 5 mins to let zone re-pop
-  -- TODO: Add each flee trigger here as separate trigger, but have them all trigger same function
-  -- TODO: Once bot reaches flee destination, have it init a new timer and triggers that will do the following
-  --        1. set timer to check 'l me' every 60 secs
-  --        2. Set triggers that check output of 'l me' to see if buffs missing
-  --        3. Set global bot state that sets each buff register to true/false
-  --        4. Set a separate trigger that has regexp trigger on 'HP:  <val>' and have it run the same flee func
-  --        5. The flee func will exec the regen func
-  --        6. The regen func sets the timer to 'l me' and react and check bot state
-  --        7. Once bot state is 100% hp and all buffs reset, exec a return to combat func
-  --        8. returnToCombat moves the bot back to starting point and re-execs the startPathing func.
-  --
-  --        NOTE: The flee trigger needs to execute the movement commands on a timer that is 1 sec,
-  --          per command, or less. See what the threshold is
-  --        NOTE: Before you start working on these items, create a private repo and make a branch for each one.
-  --        NOTE: Don't use 'grasp key', for now, just run back to the sorc guild.
 end
 
 -- TODO: This func needs a trigger on "What?" And then stop immediately, or even consider send("quit")
@@ -288,57 +271,13 @@ function Xp.startPathing(path)
         "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
         --"Cannot find militia man,cutthroat,cutpurse",
         --"Cannot find mock",
-        function() Xp.continuePath("Pesvint Path", path) end
+        function() Xp.continuePath("Pesvint Path", path, true) end
     )
-
-    -- TODO: Does this do anything? Make sure it still works.
-    --reInitPathingTrigger = tempTrigger(
-    --    "YOU HAVE ARRIVED AT YOUR DESTINATION: Pesvint Path",
-    --    function()
-    --        pausePathingTimer = tempTimer(
-    --            300,
-    --            function()
-    --                echo("\nIs the reInit path working?\n")
-    --
-    --                -- TODO: Not sure if these are needed here.
-    --                killTrigger(continuePathTrigger)
-    --                killTrigger(reInitPathingTrigger)
-    --                Xp.continuePath("Pesvint Path", path)
-    --            end
-    --        )
-    --    end
-    --)
-
-    -- The hardened air around you is beginning to soften
-    -- Your Electric Field Spell Expires
-    -- Cannot find militia man,conscript,citizen
-    -- The hardened air around you softens
-    -- You are currently too mentally drained to cast Electric Field
-    -- You are currently too mentally drained to cast Air Steel
-    -- Your hands have lost their electrical energy.
-
-    -- *********************************************************************************************
-    -- BUG: For some reason, when one trigger goes off, all three go off. Keep just one for now
-    -- *********************************************************************************************
-
-    -- TODO: You may not be able to set multiple tempTriggers, see if you can use another way.
-    --airSteelDropTrigger = tempTrigger(
-    --        "The hardened air around you softens",
-    --        function() Xp.flee() end
-    --)
-
-    --electricFieldDropTrigger = tempTrigger(
-    --        "Your Electric Field Spell Expires",
-    --        function() Xp.flee() end
-    --)
-    --
-    --shockingGraspDropTrigger = tempTrigger(
-    --        "Your hands have lost their electrical energy",
-    --        function() Xp.flee() end
-    --)
 end
 
 function Xp.stopPathing()
+    send("stop")
+
     if attackTimer then
         disableTimer(attackTimer)
     end
@@ -347,7 +286,9 @@ function Xp.stopPathing()
         killTrigger(continuePathTrigger)
     end
 
-    --killTrigger(reInitPathingTrigger)
+    if moveTimer then
+        disableTimer(moveTimer)
+    end
 end
 
 function Xp.startAttackTimer()
@@ -366,26 +307,28 @@ function Xp.sendAttackCommands()
     send("kill fire giants,ogres,elementals,militia men,ogre-mage")
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
-    --send("cast lightning storm")
+    send("cast lightning storm")
 end
 
-function Xp.continuePath(destination, moves)
+function Xp.continuePath(destination, moves, rest)
   if Xp.CURRENT_MOVE > #moves then
-      echo("\nAttempting to stop pathing.\n")
-      send("stop")
       Xp.stopPathing()
-      --disableTimer(attackTimer)
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
 
-      restTimer = tempTimer(
-              300,
-              function()
-                  Xp.startPathing(Xp.SXP)
-                  disableTimer(restTimer)
-              end,
-              true
-      )
+      send("cast invisibility")
+
+      if rest then
+          restTimer = tempTimer(
+                  300,
+                  function()
+                      -- TODO: Move this to Xp.CURRENT_PATH
+                      Xp.startPathing(Xp.FXP)
+                      disableTimer(restTimer)
+                  end,
+                  true
+          )
+      end
   else
     send(moves[Xp.CURRENT_MOVE])
     Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
@@ -405,5 +348,32 @@ function Xp.continueFleeing(destination, moves)
         --echo("\nFleeing: "..moves[Xp.FLEE_IDX].."\n")
         send(moves[Xp.FLEE_IDX])
         Xp.FLEE_IDX = Xp.FLEE_IDX + 1
+    end
+end
+
+-- Must copy/paste into perl regex trigger on: regexp: (Gp: )(\d{1,3})
+function Xp.drinkCyanPotion()
+    hud = line
+    hudSplit = string.split(hud, "Gp: ")[2]
+    substr = string.sub(hudSplit, 1, 4)
+
+    hasParen = false
+
+    -- If parenthesis detected, then GP must be below 1000
+    for k,v in ipairs(string.split(substr, "")) do
+        if v == '(' then
+            hasParen = true
+        else
+            hasParen = false
+        end
+    end
+
+    -- If below 1000, check if we are below 600, if true, quaf potion
+    if hasParen then
+        cecho("\n<blue:yellow>QUAF CYAN POTION\n")
+        --send("get cyan potion from bags")
+        send("get mana potion from bags")
+        send("drink mana potion")
+        --send("drink cyan potion")
     end
 end
