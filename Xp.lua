@@ -316,6 +316,8 @@ function Xp.continuePath(destination, moves, rest)
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
 
+      send("cast invisibility")
+
       if rest then
           restTimer = tempTimer(
                   300,
@@ -349,15 +351,7 @@ function Xp.continueFleeing(destination, moves)
     end
 end
 
--- TODOs:
---  1. Fix path, it is getting stuck in King's room. Verify the path manually.
---      BUG: I think once I have 0 pots in bag1 or bag2, some sort of infinite loop kicks off and I
---          have to force quit the client. It queues up commands in a way that dead locks the client.
---  2. Run bot until all bag1 pots are gone
---  3. Test the bagMissTrigger. It should start grabbing pots from bag2 and setting global currBag
---  4. Run bot until all bag2 pots are gone.
---  5. Write the invis mode code and test with both bags empty.
--- NOTE: Also, consider adding a cast invis at the end of the path before the 5min timer is set.
+-- Must copy/paste into perl regex trigger on: regexp: (Gp: )(\d{1,3})
 function Xp.drinkCyanPotion()
     hud = line
     hudSplit = string.split(hud, "Gp: ")[2]
@@ -376,34 +370,10 @@ function Xp.drinkCyanPotion()
 
     -- If below 1000, check if we are below 600, if true, quaf potion
     if hasParen then
-        bagMissTrigger = tempTrigger(
-                "You cannot find a cyan potion to drink",
-                function()
-                    if Xp.CURRENT_BAG == 2 then
-                        Xp.CURRENT_BAG = 1
-                        Xp.stopPathing()
-                        killTrigger("bagMissTrigger")
-                        Xp.INVIS_MODE = true
-
-                        return
-                    end
-
-                    Xp.CURRENT_BAG = 2
-                    send("get cyan potion from bag "..Xp.CURRENT_BAG)
-                    send("drink cyan potion")
-                end
-        )
-
-        -- TODO: Somehow we're still in an infinite loop at Fire Giants. This did not occur in Pesvint.
-        -- NOTE: Maybe the killTrigger func inside the trigger doesn't work, so we can call that here.
-        if Xp.INVIS_MODE == true then
-            -- TODO: This is invis mode state. Implement after quaf bug fix. Just return for now.
-            -- NOTE: I recently moved the send("stop") into stopPathing, this is not ideal for this feature
-            return
-        end
-
         cecho("\n<blue:yellow>QUAF CYAN POTION\n")
-        send("get cyan potion from bag "..Xp.CURRENT_BAG)
-        send("drink cyan potion")
+        --send("get cyan potion from bags")
+        send("get mana potion from bags")
+        send("drink mana potion")
+        --send("drink cyan potion")
     end
 end
