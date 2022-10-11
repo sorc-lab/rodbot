@@ -10,10 +10,34 @@ Xp = Xp or {}
 -- TODO: CURRENT_MOVE really should be current move index or something.
 Xp.CURRENT_MOVE = 1
 Xp.CURRENT_BAG = 1
+Xp.POTS_QUAFFED = 0
+Xp.PATH_START_TIME = 0
+Xp.PATH_END_TIME = 0
+
+-- TODO: Remove these. They are not used.
 Xp.INVIS_MODE = false
 
 Xp.CURRENT_PATH = nil
 Xp.FLEE_IDX = 1
+
+-- TODO: Xerxis wall.
+--Oct  4 15:48:33  Quendraszth tells you, "xpXW =
+--                 {"out","e","s","s","u","w","w","w","w","w","s","s","s","s","s","s","e","e","s","s",
+--                 "s","s","sw","u","d","ne","e","e","e","d","n","e","e","s","get money from
+--all","repair xpweap","repair
+--xpweap","pm","n","w","w","s","u","e","e","e","se","u","d","nw","n","n","n","n","e",
+--                 "e","n","n","n","n","n","n","ne","sw","w","w","w","w","w","d","n","n","w","mg"}RE
+--                 SET"
+--Oct  4 15:49:03  Quendraszth tells you, "starts in the advance tower north of town...
+--                 fixes whatever you have nicknamed to 'xpweap' and uses 'alias mg sorcerer' or
+--                 hatever your guild is"
+
+-- starts down from captain in noob area.
+Xp.SREENXP = {
+    'e','se','pull grate','d','e', 'w', 'u', 'ne', 'nw', 'se', 'd', 'e', 's','n', 'e', 'se', 'e',
+    'n', 'w', 's', 'nw', 'w', 'ne', 'ne', 'ne', 'e', 's', 'e',
+    'w','n','w','sw','sw','sw','w','u','sw','nw','w'
+}
 
 Xp.SXP = {
     'n','e','s','w','u',
@@ -262,6 +286,13 @@ end
 
 -- TODO: This func needs a trigger on "What?" And then stop immediately, or even consider send("quit")
 function Xp.startPathing(path)
+    Xp.PATH_START_TIME = os.time()
+
+    send("cast air steel")
+    send("cast shocking grasp")
+    send("cast electric field")
+    send("cast mystical cloak")
+
     Xp.CURRENT_MOVE = 1
     Xp.CURRENT_PATH = path
     Xp.startAttackTimer()
@@ -269,7 +300,10 @@ function Xp.startPathing(path)
     continuePathTrigger = tempTrigger(
         --"Cannot find clockwork soldiers",
         "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
-        --"Cannot find militia man,cutthroat,cutpurse",
+        --"Cannot find cutpurse",
+        --"Cannot find rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince",
+        --"Cannot find militia men",
+        --"Cannot find militia men,cutthroats,cutpurses",
         --"Cannot find mock",
         function() Xp.continuePath("Pesvint Path", path, true) end
     )
@@ -292,7 +326,13 @@ function Xp.stopPathing()
 end
 
 function Xp.startAttackTimer()
-    attackTimer = tempTimer(2, Xp.sendAttackCommands, true)
+    -- TODO: Timer is being set to 4 seconds due to over quaffing Cyans and costing lots of plat.
+    -- TODO: You need to figure out how to attack on trigger vs timer and attack every other round
+    --  by setting a 2 second tempTimer on each attack.
+
+    -- NOTE: Cyans only last 30 seconds.
+
+    attackTimer = tempTimer(4, Xp.sendAttackCommands, true)
 end
 
 function Xp.stopAttackTimer()
@@ -300,21 +340,46 @@ function Xp.stopAttackTimer()
 end
 
 function Xp.sendAttackCommands()
-    --send("kill militia man,cutthroat,cutpurse")
+    --send("kill militia men,cutthroats,cutpurses")
+    --send("kill cutpurse")
     --send("kill militia men")
     --send("kill mock")
 
     send("kill fire giants,ogres,elementals,militia men,ogre-mage")
+    --send("level rod at fire giants,ogres,elementals,militia men,ogre-mage")
+    --send("kill rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince")
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
     send("cast lightning storm")
 end
 
+--Oct 10 14:03:42  Zalzan tells you, Barbanikos and Azoshin, "mac you can easily
+--                 refactor your bot to be much faster by sending Xp.sendAttackCommands() after each
+--                 move"
 function Xp.continuePath(destination, moves, rest)
   if Xp.CURRENT_MOVE > #moves then
       Xp.stopPathing()
+
+      Xp.PATH_END_TIME = os.time()
+
       Xp.CURRENT_MOVE = 1
       cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
+
+      echo("\nPath started: "..Xp.PATH_START_TIME.."\n")
+      echo("\nPath ended: "..Xp.PATH_END_TIME.."\n")
+      echo("\nPotions quaffed: "..Xp.POTS_QUAFFED.."\n")
+
+      -- TODO: Figure out how long it takes to run through ~100 potions. Manually set timer to stop.
+      -- NOTE: This could evolve into an "evac" timer that will evac once done botting.
+
+      -- TODO: Need to add actual (end - start) / 60 calc to give minutes.
+      -- NOTE: Need to produce a calc that takes total Cyans and calcs the minutes + the 5min rest
+      --    timers in between and spit out a "time to stop" and manaully plug that into phone timer.
+
+      -- Reset metric capture registers
+      Xp.PATH_START_TIME = 0
+      Xp.PATH_END_TIME = 0
+      Xp.POTS_QUAFFED = 0
 
       send("cast invisibility")
 
@@ -351,10 +416,17 @@ function Xp.continueFleeing(destination, moves)
     end
 end
 
+-- TODO: Need a potion counter that increments, then shifts to different bag.
+-- NOTE: Code should assume each bag is full and main inv is empty.
 -- Must copy/paste into perl regex trigger on: regexp: (Gp: )(\d{1,3})
 function Xp.drinkCyanPotion()
     hud = line
     hudSplit = string.split(hud, "Gp: ")[2]
+
+    -- TODO: This hudSplit value needs to be captured as global const that explains what it is
+    -- NOTE: This is how you quaf on 10s vs 1000s etc. Needs to be 4 to quaf below 1000, and 3 to
+    --  quaf below 100
+    --substr = string.sub(hudSplit, 1, 3)
     substr = string.sub(hudSplit, 1, 4)
 
     hasParen = false
@@ -370,10 +442,16 @@ function Xp.drinkCyanPotion()
 
     -- If below 1000, check if we are below 600, if true, quaf potion
     if hasParen then
-        cecho("\n<blue:yellow>QUAF CYAN POTION\n")
-        --send("get cyan potion from bags")
-        send("get mana potion from bags")
-        send("drink mana potion")
-        --send("drink cyan potion")
+        cecho("\n<blue:yellow>QUAF POTION\n")
+
+        send("get cyan potion from bags")
+        send("drink cyan potion")
+        send("put cyan potions in bags")
+
+        Xp.POTS_QUAFFED = Xp.POTS_QUAFFED + 1
+
+        --send("get mana potion from bags")
+        --send("drink mana potion")
+        --send("put mana potions in bags")
     end
 end
