@@ -353,51 +353,48 @@ function Xp.sendAttackCommands()
     send("cast lightning storm")
 end
 
---Oct 10 14:03:42  Zalzan tells you, Barbanikos and Azoshin, "mac you can easily
---                 refactor your bot to be much faster by sending Xp.sendAttackCommands() after each
---                 move"
 function Xp.continuePath(destination, moves, rest)
-  if Xp.CURRENT_MOVE > #moves then
-      Xp.stopPathing()
+    if Xp.CURRENT_MOVE > #moves then
+        Xp.stopPathing()
 
-      Xp.PATH_END_TIME = os.time()
+        Xp.PATH_END_TIME = os.time()
 
-      Xp.CURRENT_MOVE = 1
-      cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
+        Xp.CURRENT_MOVE = 1
+        cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
 
-      echo("\nPath started: "..Xp.PATH_START_TIME.."\n")
-      echo("\nPath ended: "..Xp.PATH_END_TIME.."\n")
-      echo("\nPotions quaffed: "..Xp.POTS_QUAFFED.."\n")
+        echo("\nPath started: "..Xp.PATH_START_TIME.."\n")
+        echo("\nPath ended: "..Xp.PATH_END_TIME.."\n")
+        echo("\nPotions quaffed: "..Xp.POTS_QUAFFED.."\n")
 
-      -- TODO: Figure out how long it takes to run through ~100 potions. Manually set timer to stop.
-      -- NOTE: This could evolve into an "evac" timer that will evac once done botting.
+        -- TODO: Figure out how long it takes to run through ~100 potions. Manually set timer to stop.
+        -- NOTE: This could evolve into an "evac" timer that will evac once done botting.
 
-      -- TODO: Need to add actual (end - start) / 60 calc to give minutes.
-      -- NOTE: Need to produce a calc that takes total Cyans and calcs the minutes + the 5min rest
-      --    timers in between and spit out a "time to stop" and manaully plug that into phone timer.
+        -- TODO: Need to add actual (end - start) / 60 calc to give minutes.
+        -- NOTE: Need to produce a calc that takes total Cyans and calcs the minutes + the 5min rest
+        --    timers in between and spit out a "time to stop" and manaully plug that into phone timer.
 
-      -- Reset metric capture registers
-      Xp.PATH_START_TIME = 0
-      Xp.PATH_END_TIME = 0
-      Xp.POTS_QUAFFED = 0
+        -- Reset metric capture registers
+        Xp.PATH_START_TIME = 0
+        Xp.PATH_END_TIME = 0
+        Xp.POTS_QUAFFED = 0
 
-      send("cast invisibility")
+        send("cast invisibility")
 
-      if rest then
-          restTimer = tempTimer(
-                  300,
-                  function()
-                      -- TODO: Move this to Xp.CURRENT_PATH
-                      Xp.startPathing(Xp.FXP)
-                      disableTimer(restTimer)
-                  end,
-                  true
-          )
-      end
-  else
-    send(moves[Xp.CURRENT_MOVE])
-    Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
-  end
+        if rest then
+            restTimer = tempTimer(
+                    300,
+                    function()
+                        -- TODO: Move this to Xp.CURRENT_PATH
+                        Xp.startPathing(Xp.FXP)
+                        disableTimer(restTimer)
+                    end,
+                    true
+            )
+        end
+    else
+        send(moves[Xp.CURRENT_MOVE])
+        Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
+    end
 end
 
 -- TODO: See this method and one above. They should work more generically.
