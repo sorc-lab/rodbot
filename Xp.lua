@@ -351,6 +351,7 @@ function Xp.sendAttackCommands()
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
     send("cast lightning storm")
+    --send("lunge")
 end
 
 function Xp.continuePath(destination, moves, rest)
@@ -378,11 +379,12 @@ function Xp.continuePath(destination, moves, rest)
         Xp.PATH_END_TIME = 0
         Xp.POTS_QUAFFED = 0
 
+        send("hide")
         send("cast invisibility")
 
         if rest then
             restTimer = tempTimer(
-                    300,
+                    250,
                     function()
                         -- TODO: Move this to Xp.CURRENT_PATH
                         Xp.startPathing(Xp.FXP)
