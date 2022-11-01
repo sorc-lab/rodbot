@@ -5,7 +5,13 @@
 
 -- TODO: Weird spacings etc, run full file formatter.
 
+require("HelloWorld")
+
 Xp = Xp or {}
+
+function Xp.tmp()
+    HelloWorld.helloWorld()
+end
 
 -- TODO: CURRENT_MOVE really should be current move index or something.
 Xp.CURRENT_MOVE = 1
@@ -188,17 +194,6 @@ function Xp.ltop()
     )
 end
 
-function Xp.fleeFromLirathToPesvint()
-    echo("\nAre we fleeing to Pesvint?\n")
-    Xp.CURRENT_MOVE = 1
-
-    moveTimer = tempTimer(
-            .5,
-            function() Xp.continuePath("FLEE TO GUILD", Xp.TO_PESVINT_FROM_LIRATH) end,
-            true
-    )
-end
-
 function Xp.ptog()
     Xp.CURRENT_MOVE = 1
 
@@ -206,16 +201,6 @@ function Xp.ptog()
         .5,
         function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
         true
-    )
-end
-
-function Xp.fleeFromPesvintToGuild()
-    Xp.CURRENT_MOVE = 1
-
-    moveTimer = tempTimer(
-            .5,
-            function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
-            true
     )
 end
 
@@ -236,51 +221,6 @@ function Xp.ptol()
         .5,
         function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT, false) end,
         true
-    )
-end
-
-local function arraySlice (tbl, s, e)
-    local pos, new = 1, {}
-
-    for i = s, e do
-        new[pos] = tbl[i]
-        pos = pos + 1
-    end
-
-    return new
-end
-
-function Xp.flee()
-    if Xp.CURRENT_MOVE > 1 then
-        Xp.stopPathing()
-        send("stop")
-
-        -- Slices a new array starting with current position in current path.
-        local fleeMoves = arraySlice(Xp.CURRENT_PATH, Xp.CURRENT_MOVE, #Xp.CURRENT_PATH)
-
-        -- TODO: Note that I have to make my own continuePath func here b/c continue path uese global state
-        --  Need to make it so all these functions take in their needed values, not globals.
-        fleeTimer = tempTimer(
-                .5,
-                function() Xp.continueFleeing("Sorcerer's Guild", fleeMoves) end,
-                true
-        )
-    end
-end
-
--- TODO: *** THESE TRIGGERS ARE NOT TRIGGERING ***
-function Xp.initFleeTriggers()
-    fleeToPesvintTrigger = tempTrigger(
-            "FLEE TO PESVINT!",
-            function()
-                echo("\nAre we triggering to flee to Pesvint?\n")
-                Xp.fleeFromLirathToPesvint()
-            end
-    )
-
-    fleeToGuildTrigger = tempTrigger(
-            "YOU HAVE ARRIVED AT YOUR DESTINATION: FLEE TO GUILD",
-            function() Xp.fleeFromPesvintToGuild() end
     )
 end
 
@@ -387,7 +327,7 @@ function Xp.continuePath(destination, moves, rest)
                     250,
                     function()
                         -- TODO: Move this to Xp.CURRENT_PATH
-                        Xp.startPathing(Xp.FXP)
+                        Xp.startPathing(Xp.PXP)
                         disableTimer(restTimer)
                     end,
                     true
@@ -396,22 +336,6 @@ function Xp.continuePath(destination, moves, rest)
     else
         send(moves[Xp.CURRENT_MOVE])
         Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
-    end
-end
-
--- TODO: See this method and one above. They should work more generically.
--- TODO: This method needs be handed the next index. It cannot increment within, else use global.
-function Xp.continueFleeing(destination, moves)
-    if Xp.FLEE_IDX > #moves then
-        Xp.FLEE_IDX = 1
-        disableTimer(fleeTimer)
-        send("stop")
-
-        cecho("\n<red:yellow>FLEE TO PESVINT!\n")
-    else
-        --echo("\nFleeing: "..moves[Xp.FLEE_IDX].."\n")
-        send(moves[Xp.FLEE_IDX])
-        Xp.FLEE_IDX = Xp.FLEE_IDX + 1
     end
 end
 

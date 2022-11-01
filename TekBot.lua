@@ -16,6 +16,9 @@ function TekBot.layers()
 end
 
 -- Regex triggers on: says loudly, "reduce (.*)"
+-- TODO: This will have issues with things like 'greaves', or stacks of plural-named items.
+-- NOTE: User will need to drop them one at a time. Need to address this and test it.
+-- NOTE: Have bot say instructions when new users enter the room.
 function TekBot.reduce()
     local defTarg = matches[2]
     send("cast reduce weight on "..defTarg)

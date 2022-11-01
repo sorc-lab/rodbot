@@ -1,0 +1,18 @@
+### API Endpoints
+    - XP PATH: Bot this path. Path should be only arg? If we wanted multiple guild support, Bot This path AS <guild>
+        NOTE: This will be called via delegation. Don't want to give it a path at the API layer.
+            e.g. ptol, gtop, ltobs, etc... These should be called via Mudlet aliases. in-game? What's the diff?
+    - Traverse: Travel to this location. Hard coded paths. Don't want to pass in the path.
+    - <Placeholder endpoints for all the Tek Bot triggers. Too many to list right now.>
+    - Quaffer -> This works off of trigger
+    - Need a help func that echos to screen all the API commands that can be called, not ones that are triggered.
+    - AFK triggers: so basic it can probably just live in a .txt file to be manually copied over.
+
+### XP PATH
+    - Should not take a path as arg. I want to just run 'fxp', 'pxp', 'sxp', 'xxp' etc.
+    - Call 'pxp' -> calls pathPxp -> pulls in Pesvint path and calls startPathing on that path.
+    - NOTE: Should pathing code exist separate? Should that code live in a PathingService? YES!
+        The Xp service will just pull in the path and delegate to pathing service.
+
+
+
