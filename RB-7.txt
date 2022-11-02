@@ -14,5 +14,11 @@
     - NOTE: Should pathing code exist separate? Should that code live in a PathingService? YES!
         The Xp service will just pull in the path and delegate to pathing service.
 
+### Triggers
+    - The ONLY time to use Mudlet triggers are for triggers that need to be turned off somtimes, like the buff bot.
+    - I always want to be able to exec xp bot or pk attacks etc, they are always on and available. Should exist in code.
+    - What about my personal buff triggers? Why would I ever want those off? How can I set them? Trigger on "Vampa enters..."?
+    - Could have an entire init class that triggers off of what I do when I login.
+
 
 
