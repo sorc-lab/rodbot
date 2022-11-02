@@ -15,7 +15,7 @@ function Xp.gtop()
 
   moveTimer = tempTimer(
     .5,
-    function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_GUILD, false) end,
+    function() Xp.continuePath("Pesvint", PathRepo.TO_PESVINT_FROM_GUILD, false) end,
     true
   )
 end
@@ -25,7 +25,7 @@ function Xp.ltop()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Pesvint", Xp.TO_PESVINT_FROM_LIRATH, false) end,
+        function() Xp.continuePath("Pesvint", PathRepo.TO_PESVINT_FROM_LIRATH, false) end,
         true
     )
 end
@@ -35,7 +35,7 @@ function Xp.ptog()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Sorcerer's Guild", Xp.TO_GUILD_FROM_PESVINT, false) end,
+        function() Xp.continuePath("Sorcerer's Guild", PathRepo.TO_GUILD_FROM_PESVINT, false) end,
         true
     )
 end
@@ -45,7 +45,7 @@ function Xp.ltobs()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Black Shrine", Xp.TO_BLACK_SHRINE_FROM_LIRATH, false) end,
+        function() Xp.continuePath("Black Shrine", PathRepo.TO_BLACK_SHRINE_FROM_LIRATH, false) end,
         true
     )
 end
@@ -55,7 +55,7 @@ function Xp.ptol()
 
     moveTimer = tempTimer(
         .5,
-        function() Xp.continuePath("Lirath", Xp.TO_LIRATH_FROM_PESVINT, false) end,
+        function() Xp.continuePath("Lirath", PathRepo.TO_LIRATH_FROM_PESVINT, false) end,
         true
     )
 end
