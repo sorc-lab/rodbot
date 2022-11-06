@@ -14,14 +14,19 @@ function Xp.ptog() Xp.execFlightPath(PathRepo.TO_GUILD_FROM_PESVINT, false) end
 function Xp.ltobs() Xp.execFlightPath(PathRepo.TO_BLACK_SHRINE_FROM_LIRATH, false) end
 function Xp.ptol() Xp.execFlightPath(PathRepo.TO_LIRATH_FROM_PESVINT, false) end
 
+function Xp.PXP() Xp.startPathing(PathRepo.XP_PESVINT) end
+
 function Xp.execFlightPath(flightPath, hasRestTimer)
     Xp.CURRENT_MOVE = 1
-    tempTimer(.5, function() Xp.continuePath(flightPath, hasRestTimer) end, true)
+
+    -- sets global timer. important for killing timer in stopPathing func.
+    moveTimer = tempTimer(.5, function() Xp.continuePath(flightPath, hasRestTimer) end, true)
 end
 
 function Xp.startPathing(path)
     Xp.PATH_START_TIME = os.time()
 
+    -- TODO: This needs to be an arg? Or it needs to use global conf to know Xp init cmds.
     send("cast air steel")
     send("cast shocking grasp")
     send("cast electric field")
@@ -43,10 +48,6 @@ function Xp.startPathing(path)
     )
 end
 
-function Xp.PXP()
-    Xp.startPathing(PathRepo.XP_PESVINT)
-end
-
 function Xp.stopPathing()
     send("stop")
 
@@ -63,20 +64,20 @@ function Xp.stopPathing()
     end
 end
 
+-- TODO: Fix this design. Use triggers to perform next action, vs. performing actions every x seconds
 function Xp.startAttackTimer()
-    -- TODO: Timer is being set to 4 seconds due to over quaffing Cyans and costing lots of plat.
-    -- TODO: You need to figure out how to attack on trigger vs timer and attack every other round
-    --  by setting a 2 second tempTimer on each attack.
-
     -- NOTE: Cyans only last 30 seconds.
-
+    -- NOTE: Attack timer set to 2sec normally, but 4sec needed to reduce cyan consumption
     attackTimer = tempTimer(4, Xp.sendAttackCommands, true)
 end
 
+-- TODO: Probably not necessary as a separate function. can this be in-lined where it is used?
 function Xp.stopAttackTimer()
   disableTimer(attackTimer)
 end
 
+-- TODO: This can be all one string of mobs spanning across all zones. They are never combined, so
+--  we can just include all.
 function Xp.sendAttackCommands()
     --send("kill militia men,cutthroats,cutpurses")
     --send("kill cutpurse")
@@ -88,11 +89,13 @@ function Xp.sendAttackCommands()
     --send("kill rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince")
     --send("kill clockwork soldiers")
     --send("cast plasma blast")
+
+    -- TODO: This section needs to be broken up with global settings, somehow.
     send("cast lightning storm")
     --send("lunge")
 end
 
-function Xp.continuePath(destination, moves, rest)
+function Xp.continuePath(moves, rest)
     if Xp.CURRENT_MOVE > #moves then
         Xp.stopPathing()
 
@@ -137,6 +140,7 @@ function Xp.continuePath(destination, moves, rest)
     end
 end
 
+-- TODO: This needs to exist in its own Trigger class per guild. Can manually enable/disable via Mudlet.
 -- TODO: Need a potion counter that increments, then shifts to different bag.
 -- NOTE: Code should assume each bag is full and main inv is empty.
 -- Must copy/paste into perl regex trigger on: regexp: (Gp: )(\d{1,3})
