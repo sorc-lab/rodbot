@@ -25,17 +25,12 @@ end
 
 function Xp.startPathing(path)
     Xp.PATH_START_TIME = os.time()
-
-    -- TODO: This needs to be an arg? Or it needs to use global conf to know Xp init cmds.
-    send("cast air steel")
-    send("cast shocking grasp")
-    send("cast electric field")
-    send("cast mystical cloak")
-
     Xp.CURRENT_MOVE = 1
 
+    Xp.setupPathingBuffs()
     Xp.startAttackTimer()
 
+    -- TODO: Genericize this. See sendAttackCommands and mirror its command here.
     continuePathTrigger = tempTrigger(
         --"Cannot find clockwork soldiers",
         "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
@@ -44,24 +39,28 @@ function Xp.startPathing(path)
         --"Cannot find militia men",
         --"Cannot find militia men,cutthroats,cutpurses",
         --"Cannot find mock",
-        function() Xp.continuePath("Pesvint Path", path, true) end
+        function() Xp.continuePath(path, true) end
     )
+end
+
+function Xp.setupPathingBuffs()
+    -- sorc specific setup
+    send("cast air steel")
+    send("cast shocking grasp")
+    send("cast electric field")
+    send("cast mystical cloak")
+
+    -- privateer specific setup
+    -- TODO: Place defense stance command here
+    send("")
 end
 
 function Xp.stopPathing()
     send("stop")
 
-    if attackTimer then
-        disableTimer(attackTimer)
-    end
-
-    if continuePathTrigger then
-        killTrigger(continuePathTrigger)
-    end
-
-    if moveTimer then
-        disableTimer(moveTimer)
-    end
+    if attackTimer then disableTimer(attackTimer) end
+    if continuePathTrigger then killTrigger(continuePathTrigger) end
+    if moveTimer then disableTimer(moveTimer) end
 end
 
 -- TODO: Fix this design. Use triggers to perform next action, vs. performing actions every x seconds
