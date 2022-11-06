@@ -8,59 +8,17 @@ Xp.POTS_QUAFFED = 0
 Xp.PATH_START_TIME = 0
 Xp.PATH_END_TIME = 0
 
--- TODO: These move functions should take args and become generic. They definitely still need the
---  arrival message with destination label
-function Xp.gtop()
-  Xp.CURRENT_MOVE = 1
+function Xp.gtop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_GUILD, false) end
+function Xp.ltop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_LIRATH, false) end
+function Xp.ptog() Xp.execFlightPath(PathRepo.TO_GUILD_FROM_PESVINT, false) end
+function Xp.ltobs() Xp.execFlightPath(PathRepo.TO_BLACK_SHRINE_FROM_LIRATH, false) end
+function Xp.ptol() Xp.execFlightPath(PathRepo.TO_LIRATH_FROM_PESVINT, false) end
 
-  moveTimer = tempTimer(
-    .5,
-    function() Xp.continuePath("Pesvint", PathRepo.TO_PESVINT_FROM_GUILD, false) end,
-    true
-  )
-end
-
-function Xp.ltop()
+function Xp.execFlightPath(flightPath, hasRestTimer)
     Xp.CURRENT_MOVE = 1
-
-    moveTimer = tempTimer(
-        .5,
-        function() Xp.continuePath("Pesvint", PathRepo.TO_PESVINT_FROM_LIRATH, false) end,
-        true
-    )
+    tempTimer(.5, function() Xp.continuePath(flightPath, hasRestTimer) end, true)
 end
 
-function Xp.ptog()
-    Xp.CURRENT_MOVE = 1
-
-    moveTimer = tempTimer(
-        .5,
-        function() Xp.continuePath("Sorcerer's Guild", PathRepo.TO_GUILD_FROM_PESVINT, false) end,
-        true
-    )
-end
-
-function Xp.ltobs()
-    Xp.CURRENT_MOVE = 1
-
-    moveTimer = tempTimer(
-        .5,
-        function() Xp.continuePath("Black Shrine", PathRepo.TO_BLACK_SHRINE_FROM_LIRATH, false) end,
-        true
-    )
-end
-
-function Xp.ptol()
-    Xp.CURRENT_MOVE = 1
-
-    moveTimer = tempTimer(
-        .5,
-        function() Xp.continuePath("Lirath", PathRepo.TO_LIRATH_FROM_PESVINT, false) end,
-        true
-    )
-end
-
--- TODO: This func needs a trigger on "What?" And then stop immediately, or even consider send("quit")
 function Xp.startPathing(path)
     Xp.PATH_START_TIME = os.time()
 
@@ -141,7 +99,7 @@ function Xp.continuePath(destination, moves, rest)
         Xp.PATH_END_TIME = os.time()
 
         Xp.CURRENT_MOVE = 1
-        cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION: "..destination.."\n")
+        cecho("\n<red:yellow>YOU HAVE ARRIVED AT YOUR DESTINATION\n")
 
         echo("\nPath started: "..Xp.PATH_START_TIME.."\n")
         echo("\nPath ended: "..Xp.PATH_END_TIME.."\n")
