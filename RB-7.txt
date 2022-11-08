@@ -20,5 +20,9 @@
     - What about my personal buff triggers? Why would I ever want those off? How can I set them? Trigger on "Vampa enters..."?
     - Could have an entire init class that triggers off of what I do when I login.
 
+### Feature flags
+    - Need a file that binds guild specific values, like start and stop pathing commands and xp bot setup commands
+    - These guild specific commands need to be bound to feature flags/toggles so I can turn a guild on/off at any time,
+        all in one place. This script will need to live IN Mudlet, vs. copying over to .conf dir every time it changes.
 
 

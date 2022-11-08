@@ -8,6 +8,9 @@ Xp.POTS_QUAFFED = 0
 Xp.PATH_START_TIME = 0
 Xp.PATH_END_TIME = 0
 
+-- TODO: Test if the "kill ogres" part of this initiates an attack on ogre-mage, which should be removed.
+Xp.NPC_TARGETS = "fire giants,ogres,elementals,militia men,rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince,clockwork soldiers"
+
 function Xp.gtop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_GUILD, false) end
 function Xp.ltop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_LIRATH, false) end
 function Xp.ptog() Xp.execFlightPath(PathRepo.TO_GUILD_FROM_PESVINT, false) end
@@ -32,32 +35,29 @@ function Xp.startPathing(path)
 
     -- TODO: Genericize this. See sendAttackCommands and mirror its command here.
     continuePathTrigger = tempTrigger(
-        --"Cannot find clockwork soldiers",
-        "Cannot find fire giants,ogres,elementals,militia men,ogre-mage",
-        --"Cannot find cutpurse",
-        --"Cannot find rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince",
-        --"Cannot find militia men",
-        --"Cannot find militia men,cutthroats,cutpurses",
-        --"Cannot find mock",
-        function() Xp.continuePath(path, true) end
+            -- TODO: This trigger fails b/c the line breaks, most likely
+            --"Cannot find "..Xp.NPC_TARGETS,
+
+            "Cannot find fire giants,ogres,elementals,militia",
+            function() Xp.continuePath(path, true) end
     )
 end
 
+-- TODO: Func needs feature flags
 function Xp.setupPathingBuffs()
     -- sorc specific setup
-    send("cast air steel")
-    send("cast shocking grasp")
-    send("cast electric field")
-    send("cast mystical cloak")
+    --send("cast air steel")
+    --send("cast shocking grasp")
+    --send("cast electric field")
+    --send("cast mystical cloak")
 
     -- privateer specific setup
     -- TODO: Place defense stance command here
-    send("")
+    --send("")
 end
 
 function Xp.stopPathing()
     send("stop")
-
     if attackTimer then disableTimer(attackTimer) end
     if continuePathTrigger then killTrigger(continuePathTrigger) end
     if moveTimer then disableTimer(moveTimer) end
@@ -67,31 +67,14 @@ end
 function Xp.startAttackTimer()
     -- NOTE: Cyans only last 30 seconds.
     -- NOTE: Attack timer set to 2sec normally, but 4sec needed to reduce cyan consumption
-    attackTimer = tempTimer(4, Xp.sendAttackCommands, true)
+    attackTimer = tempTimer(2, Xp.sendAttackCommands, true)
 end
 
--- TODO: Probably not necessary as a separate function. can this be in-lined where it is used?
-function Xp.stopAttackTimer()
-  disableTimer(attackTimer)
-end
-
--- TODO: This can be all one string of mobs spanning across all zones. They are never combined, so
---  we can just include all.
+-- TODO: This func needs feature flags
 function Xp.sendAttackCommands()
-    --send("kill militia men,cutthroats,cutpurses")
-    --send("kill cutpurse")
-    --send("kill militia men")
-    --send("kill mock")
-
-    send("kill fire giants,ogres,elementals,militia men,ogre-mage")
-    --send("level rod at fire giants,ogres,elementals,militia men,ogre-mage")
-    --send("kill rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince")
-    --send("kill clockwork soldiers")
-    --send("cast plasma blast")
-
-    -- TODO: This section needs to be broken up with global settings, somehow.
-    send("cast lightning storm")
-    --send("lunge")
+    send("kill "..Xp.NPC_TARGETS)
+    --send("cast lightning storm")
+    send("lunge")
 end
 
 function Xp.continuePath(moves, rest)
@@ -119,9 +102,11 @@ function Xp.continuePath(moves, rest)
         Xp.PATH_END_TIME = 0
         Xp.POTS_QUAFFED = 0
 
+        -- TODO: This is the "rest section" and needs feature toggles.
         send("hide")
-        send("cast invisibility")
+        --send("cast invisibility")
 
+        -- TODO: This should go in its own function. This also needs config values tied to it, globally.
         if rest then
             restTimer = tempTimer(
                     250,
@@ -136,46 +121,5 @@ function Xp.continuePath(moves, rest)
     else
         send(moves[Xp.CURRENT_MOVE])
         Xp.CURRENT_MOVE = Xp.CURRENT_MOVE + 1
-    end
-end
-
--- TODO: This needs to exist in its own Trigger class per guild. Can manually enable/disable via Mudlet.
--- TODO: Need a potion counter that increments, then shifts to different bag.
--- NOTE: Code should assume each bag is full and main inv is empty.
--- Must copy/paste into perl regex trigger on: regexp: (Gp: )(\d{1,3})
-function Xp.drinkCyanPotion()
-    hud = line
-    hudSplit = string.split(hud, "Gp: ")[2]
-
-    -- TODO: This hudSplit value needs to be captured as global const that explains what it is
-    -- NOTE: This is how you quaf on 10s vs 1000s etc. Needs to be 4 to quaf below 1000, and 3 to
-    --  quaf below 100
-    --substr = string.sub(hudSplit, 1, 3)
-    substr = string.sub(hudSplit, 1, 4)
-
-    hasParen = false
-
-    -- If parenthesis detected, then GP must be below 1000
-    for k,v in ipairs(string.split(substr, "")) do
-        if v == '(' then
-            hasParen = true
-        else
-            hasParen = false
-        end
-    end
-
-    -- If below 1000, check if we are below 600, if true, quaf potion
-    if hasParen then
-        cecho("\n<blue:yellow>QUAF POTION\n")
-
-        send("get cyan potion from bags")
-        send("drink cyan potion")
-        send("put cyan potions in bags")
-
-        Xp.POTS_QUAFFED = Xp.POTS_QUAFFED + 1
-
-        --send("get mana potion from bags")
-        --send("drink mana potion")
-        --send("put mana potions in bags")
     end
 end
