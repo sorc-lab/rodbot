@@ -9,7 +9,9 @@ Xp.PATH_START_TIME = 0
 Xp.PATH_END_TIME = 0
 
 -- TODO: Test if the "kill ogres" part of this initiates an attack on ogre-mage, which should be removed.
-Xp.NPC_TARGETS = "fire giants,ogres,elementals,militia men,rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince,clockwork soldiers"
+--Xp.NPC_TARGETS = "fire giants,ogres,elementals,militia men,rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince,clockwork soldiers"
+-- TODO: Make constants per zone.
+Xp.NPC_TARGETS = "giants,elementals"
 
 function Xp.gtop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_GUILD, false) end
 function Xp.ltop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_LIRATH, false) end
@@ -26,12 +28,47 @@ function Xp.execFlightPath(flightPath, hasRestTimer)
     moveTimer = tempTimer(.5, function() Xp.continuePath(flightPath, hasRestTimer) end, true)
 end
 
+
+-- TODO: Can change name later. Just need a fresh slate to re-write startPathing. Or keep name? duno.
+function Xp.pesvint()
+    Xp.CURRENT_MOVE = 1
+
+    -- start the xp bot by attacking room 1
+    send("kill "..Xp.NPC_TARGETS)
+    send("lunge")
+end
+
+function Xp.fireGiants()
+    Xp.CURRENT_MOVE = 1
+
+    -- start the xp bot by attacking room 1
+    send("kill "..Xp.NPC_TARGETS)
+    send("lunge")
+end
+
 function Xp.startPathing(path)
     Xp.PATH_START_TIME = os.time()
     Xp.CURRENT_MOVE = 1
 
     Xp.setupPathingBuffs()
-    Xp.startAttackTimer()
+    --Xp.startAttackTimer()
+
+    -- TODO: Try triggering a lunge/attack cmds on success of previous. Keep the trigger that moves
+    --  to next room. This approach will require two triggers, as a first stab at it to remove
+    --  attack timer.
+
+    Xp.sendAttackCommands()
+
+    attackTrigger1 = tempTrigger(
+            "Ok, You sneak",
+            function() Xp.sendAttackCommands() end
+    )
+
+    -- TODO: This is highly problematic. You need to trigger on lunge, not each slash.
+    attackTrigger2 = tempTrigger(
+            "You lunge at",
+            function() Xp.sendAttackCommands() end
+    )
 
     -- TODO: Genericize this. See sendAttackCommands and mirror its command here.
     continuePathTrigger = tempTrigger(
@@ -77,6 +114,7 @@ function Xp.sendAttackCommands()
     send("lunge")
 end
 
+-- TODO: This func can be retired, but retain the metrics part of it.
 function Xp.continuePath(moves, rest)
     if Xp.CURRENT_MOVE > #moves then
         Xp.stopPathing()

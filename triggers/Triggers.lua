@@ -34,9 +34,9 @@ function Triggers.drinkCyanPotion()
     if hasParen then
         cecho("\n<blue:yellow>QUAF POTION\n")
 
-        send("get cyan potion from bags")
+        send("get cyan potion from satchel")
         send("drink cyan potion")
-        send("put cyan potions in bags")
+        send("put cyan potions in satchel")
 
         Xp.POTS_QUAFFED = Xp.POTS_QUAFFED + 1
 
