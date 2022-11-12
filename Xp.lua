@@ -11,7 +11,7 @@ Xp.PATH_END_TIME = 0
 -- TODO: Test if the "kill ogres" part of this initiates an attack on ogre-mage, which should be removed.
 --Xp.NPC_TARGETS = "fire giants,ogres,elementals,militia men,rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince,clockwork soldiers"
 -- TODO: Make constants per zone.
-Xp.NPC_TARGETS = "giants,elementals"
+Xp.NPC_TARGETS = "giants,elementals,militia men,officers"
 
 function Xp.gtop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_GUILD, false) end
 function Xp.ltop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_LIRATH, false) end
