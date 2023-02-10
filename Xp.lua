@@ -12,6 +12,7 @@ Xp.PATH_END_TIME = 0
 --Xp.NPC_TARGETS = "fire giants,ogres,elementals,militia men,rat,orc,gnomes,duergar,varena,hermit,svirfnebli,troll,warden,priest,prince,clockwork soldiers"
 -- TODO: Make constants per zone.
 Xp.NPC_TARGETS = "giants,elementals,militia men,officers"
+--Xp.NPC_TARGETS = "gnomes,drow,orcs,rats,elves,throck,soldiers,duergar,svirfnebli"
 
 function Xp.gtop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_GUILD, false) end
 function Xp.ltop() Xp.execFlightPath(PathRepo.TO_PESVINT_FROM_LIRATH, false) end
@@ -34,8 +35,9 @@ function Xp.pesvint()
     Xp.CURRENT_MOVE = 1
 
     -- start the xp bot by attacking room 1
-    send("kill "..Xp.NPC_TARGETS)
-    send("lunge")
+    --send("kill "..Xp.NPC_TARGETS)
+    send("launch dim mak at monsters")
+    --send("launch kata at "..Xp.NPC_TARGETS)
 end
 
 function Xp.fireGiants()
